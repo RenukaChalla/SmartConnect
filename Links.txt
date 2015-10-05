@@ -1,0 +1,5 @@
+Links to info about reading and writing from NFC tag for Android
+
+http://code.tutsplus.com/tutorials/reading-nfc-tags-with-android--mobile-17278
+http://stackoverflow.com/questions/12453658/reading-data-from-nfc-tag
+http://stackoverflow.com/questions/5546932/how-to-read-and-write-android-nfc-tags
