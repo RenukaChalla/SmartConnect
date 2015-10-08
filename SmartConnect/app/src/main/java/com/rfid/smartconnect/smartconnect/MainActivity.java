@@ -1,24 +1,8 @@
 package com.rfid.smartconnect.smartconnect;
 
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.ndeftools.Message;
-import org.ndeftools.Record;
-import org.ndeftools.externaltype.AndroidApplicationRecord;
-
-import android.app.Activity;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
@@ -34,17 +18,28 @@ import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.os.Vibrator;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.widget.ArrayAdapter;
+import android.view.View;
 import android.widget.TextView;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.widget.Toast;
+
+import org.ndeftools.Record;
+import org.ndeftools.externaltype.AndroidApplicationRecord;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 
 public class MainActivity extends ActionBarActivity {
 
-    private static String TAG = MainActivity.class.getSimpleName();
     private final static int REQUEST_ENABLE_BT = 1;
+    private static String TAG = MainActivity.class.getSimpleName();
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
     @Override
@@ -55,6 +50,19 @@ public class MainActivity extends ActionBarActivity {
         nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
         Log.d(TAG, "onResume");
         setContentView(R.layout.activity_main);
+        findViewById(R.id.bind_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Toast.makeText(MainActivity.this, "bind clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
+        findViewById(R.id.pair_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "pair clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -98,7 +106,7 @@ public class MainActivity extends ActionBarActivity {
                         Log.d(TAG, " Record #" + k + " is of class " + records.get(k).getClass().getSimpleName());
                         Record record = records.get(k);
                         TextView textView = (TextView) findViewById(R.id.title);
-                        //textView.setText(record.text.value);
+                        textView.setText(record.getKey());
                         if (record instanceof AndroidApplicationRecord) {
                             AndroidApplicationRecord aar = (AndroidApplicationRecord) record;
                             Log.d(TAG, "Package is " + aar.getPackageName());
