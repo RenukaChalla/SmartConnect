@@ -4,6 +4,6 @@
     <string name="action_settings">Settings</string>
     <string name="error_detected">TAG NOT DETECTED</string>
     <string name="ok_writing">TAG WRITTEN!</string>
-    <string name="error_writing">ERROR DURING WRITING. MAKE SURE THE TAG IS CLOSE TO THE PHONE?</string>
+    <string name="error_writing">ERROR DURING WRITING. MAKE SURE THE TAG IS CLOSE TO THE PHONE</string>
     <string name="ok_detection">TAG DETECTED: </string>
 </resources>
