@@ -1,4 +1,4 @@
-package com.rfid.smartconnect.smartconnect;
+package com.rfid.sonali.smartconnect;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
