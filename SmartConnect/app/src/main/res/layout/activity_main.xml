@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:weightSum="2">
+        android:weightSum="3">
 
         <Button
             android:id="@+id/bind_btn"
@@ -29,10 +29,24 @@
             android:layout_weight="1"
             android:background="@drawable/pair_img"
             android:text="Pair" />
+
+        <Button
+            android:id="@+id/write_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/material_blue_grey_800"
+            android:text="Write" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name" />
+
+    <TextView
+        android:id="@+id/edit_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/app_name" />
