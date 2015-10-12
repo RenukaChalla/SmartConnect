@@ -42,3 +42,10 @@ proguard/
 /build
 /.idea/runConfigurations.xml
 /.idea/
+*.xml
+
+*.xml
+
+*.xml
+
+SmartConnect/.idea/compiler.xml
