@@ -2,6 +2,7 @@ package com.rfid.smartconnect.smartconnect;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -48,7 +49,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
 @SuppressLint({ "ParserError", "ParserError" })
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static String TAG = MainActivity.class.getSimpleName();
     private final static int REQUEST_ENABLE_BT = 1;
@@ -109,7 +110,7 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onPause() {
-        super.onResume();
+        super.onPause();
         Log.d(TAG, "onPause");
         disableForegroundMode();
     }
