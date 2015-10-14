@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -32,7 +33,7 @@ public class BTActivity extends Activity {
     ListView listViewPaired;
     ListView listViewDetected;
     ArrayList<String> arrayListpaired;
-    Button buttonSearch,buttonOn,buttonDesc,buttonOff;
+    ImageView imgSearch,imgOn,imgDisc,imgOff;
     ArrayAdapter<String> adapter,detectedAdapter;
     static HandleSeacrh handleSeacrh;
     BluetoothDevice bdDevice;
@@ -50,10 +51,10 @@ public class BTActivity extends Activity {
         setContentView(R.layout.activity_bt);
         listViewDetected = (ListView) findViewById(R.id.listViewDetected);
         listViewPaired = (ListView) findViewById(R.id.listViewPaired);
-        buttonSearch = (Button) findViewById(R.id.buttonSearch);
-        buttonOn = (Button) findViewById(R.id.buttonOn);
-        buttonDesc = (Button) findViewById(R.id.buttonDesc);
-        buttonOff = (Button) findViewById(R.id.buttonOff);
+        imgSearch = (ImageView) findViewById(R.id.imgSearch);
+        imgOn = (ImageView) findViewById(R.id.imgOn);
+        imgDisc = (ImageView) findViewById(R.id.imgDisc);
+        imgOff = (ImageView) findViewById(R.id.imgOff);
         arrayListpaired = new ArrayList<String>();
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         clicked = new ButtonClicked();
@@ -78,10 +79,10 @@ public class BTActivity extends Activity {
         // TODO Auto-generated method stub
         super.onStart();
         getPairedDevices();
-        buttonOn.setOnClickListener(clicked);
-        buttonSearch.setOnClickListener(clicked);
-        buttonDesc.setOnClickListener(clicked);
-        buttonOff.setOnClickListener(clicked);
+        imgOn.setOnClickListener(clicked);
+        imgSearch.setOnClickListener(clicked);
+        imgDisc.setOnClickListener(clicked);
+        imgOff.setOnClickListener(clicked);
         listViewDetected.setOnItemClickListener(listItemClicked);
         listViewPaired.setOnItemClickListener(listItemClickedonPaired);
     }
@@ -211,17 +212,17 @@ public class BTActivity extends Activity {
         @Override
         public void onClick(View view) {
             switch (view.getId()) {
-                case R.id.buttonOn:
+                case R.id.imgOn:
                     onBluetooth();
                     break;
-                case R.id.buttonSearch:
+                case R.id.imgSearch:
                     arrayListBluetoothDevices.clear();
                     startSearching();
                     break;
-                case R.id.buttonDesc:
+                case R.id.imgDisc:
                     makeDiscoverable();
                     break;
-                case R.id.buttonOff:
+                case R.id.imgOff:
                     offBluetooth();
                     break;
                 default:

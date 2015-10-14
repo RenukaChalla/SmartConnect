@@ -1,41 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="fill_parent"
-android:layout_height="fill_parent"
-android:orientation="vertical" >
-
-<Button
-    android:id="@+id/buttonOn"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="On"/>
-<Button
-    android:id="@+id/buttonDesc"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:text="Make Discoverable"/>
-<Button
-    android:id="@+id/buttonSearch"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Search"/>
-<Button
-    android:id="@+id/buttonOff"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Bluetooth Off"/>
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:orientation="vertical">
 
-<ListView
-    android:id="@+id/listViewPaired"
-    android:layout_width="match_parent"
-    android:layout_height="120dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
 
-</ListView>
+        <ImageView
+            android:id="@+id/imgOn"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/bluetooth_on" />
 
-<ListView
-    android:id="@+id/listViewDetected"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/imgDisc"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/bluetooth_discover" />
 
-</ListView>
+        <ImageView
+            android:id="@+id/imgSearch"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/bluetooth_search" />
+
+        <ImageView
+            android:id="@+id/imgOff"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/bluetooth_off" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/listViewPaired"
+        android:layout_width="match_parent"
+        android:layout_height="120dp">
+
+    </ListView>
+
+    <ListView
+        android:id="@+id/listViewDetected"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </ListView>
 </LinearLayout>
