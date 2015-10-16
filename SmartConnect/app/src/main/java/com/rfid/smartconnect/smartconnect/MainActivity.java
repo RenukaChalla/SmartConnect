@@ -1,8 +1,7 @@
 package com.rfid.smartconnect.smartconnect;
 
-import android.support.v7.app.ActionBarActivity;
+//import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -10,6 +9,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -49,50 +49,23 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
 @SuppressLint({ "ParserError", "ParserError" })
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private static String TAG = MainActivity.class.getSimpleName();
-    private final static int REQUEST_ENABLE_BT = 1;
-    protected NfcAdapter nfcAdapter;
-    protected PendingIntent nfcPendingIntent;
     protected NfcAdapter adapter;
     protected PendingIntent pendingIntent;
     IntentFilter writeTagFilters[];
     boolean writeMode;
     Tag mytag;
     Context ctx;
+    private TextView mTextView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // initialize NFC
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-        Log.d(TAG, "onResume");
         setContentView(R.layout.activity_main);
-        ctx=this;
-        Button btnWrite = (Button) findViewById(R.id.write_btn);
-        final TextView message = (TextView)findViewById(R.id.edit_message);
-        btnWrite.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v) {
-                try {
-                    if(mytag==null){
-                        Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
-                    }else{
-                        write(message.getText().toString(),mytag);
-                        Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
-                    }
-                } catch (IOException e) {
-                    Toast.makeText(ctx, ctx.getString(R.string.error_writing), Toast.LENGTH_LONG ).show();
-                    e.printStackTrace();
-                } catch (FormatException e) {
-                    Toast.makeText(ctx, ctx.getString(R.string.error_writing) , Toast.LENGTH_LONG ).show();
-                    e.printStackTrace();
-                }
-            }
-        });
-
+        Log.d(TAG, "onCreate");
+        mTextView = (TextView) findViewById(R.id.title3);
+        // initialize NFC
         adapter = NfcAdapter.getDefaultAdapter(this);
         pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
@@ -102,67 +75,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume");
-        enableForegroundMode();
-    }
-
-    @Override
-    protected void onPause() {
+    public void onPause(){
         super.onPause();
         Log.d(TAG, "onPause");
-        disableForegroundMode();
+        WriteModeOff();
     }
-    private void write(String text, Tag tag) throws IOException, FormatException {
 
-        NdefRecord[] records = { createRecord(text) };
-        NdefMessage  message = new NdefMessage(records);
-        // Get an instance of Ndef for the tag.
-        Ndef ndef = Ndef.get(tag);
-        // Enable I/O
-        ndef.connect();
-        // Write the message
-        ndef.writeNdefMessage(message);
-        // Close the connection
-        ndef.close();
-    }
     @Override
-    public void onNewIntent(Intent intent) { //
-        Log.d(TAG, "onNewIntent");
-        // check for NFC related actions
-        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())) {
-            TextView textView = (TextView) findViewById(R.id.title);
-            textView.setText("Hello NFC tag!");
-            Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            new NdefReaderTask().execute(tag);
-            readMessages(intent);
-            handleBluetooth();
-            mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
-        }
+    public void onResume(){
+        super.onResume();
+        Log.d(TAG, "onResume");
+        WriteModeOn();
     }
 
-    private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
-        String lang       = "en";
-        byte[] textBytes  = text.getBytes();
-        byte[] langBytes  = lang.getBytes("US-ASCII");
-        int    langLength = langBytes.length;
-        int    textLength = textBytes.length;
-        byte[] payload    = new byte[1 + langLength + textLength];
-
-        // set status byte (see NDEF spec for actual bits)
-        payload[0] = (byte) langLength;
-
-        // copy langbytes and textbytes into payload
-        System.arraycopy(langBytes, 0, payload, 1,              langLength);
-        System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
-
-        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
-
-        return recordNFC;
+    private void WriteModeOn(){
+        writeMode = true;
+        adapter.enableForegroundDispatch(this, pendingIntent, writeTagFilters, null);
     }
 
+    private void WriteModeOff(){
+        writeMode = false;
+        adapter.disableForegroundDispatch(this);
+    }
+
+    // Function to read from the tag
     public void readMessages(Intent intent) {
         Parcelable[] messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
         if (messages != null) {
@@ -190,9 +126,89 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Activate device vibrator for 500 ms
-     */
+    // Function for writing to tag
+    private void write(Tag tag) throws IOException, FormatException {
+
+        NdefRecord[] records = { createRecord(/* TODO:"headsetBluetoothName" */) };
+        NdefMessage  message = new NdefMessage(records);
+        // Get an instance of Ndef for the tag.
+        Ndef ndef = Ndef.get(tag);
+        // Enable I/O
+        ndef.connect();
+        // Write the message
+        ndef.writeNdefMessage(message);
+        writeMode = false;
+        // Close the connection
+        ndef.close();
+    }
+
+    // Function to create record for tag
+    private NdefRecord createRecord(/*TODO: String bluetoothName*/) throws UnsupportedEncodingException {
+        // PackageManager pm = getPackageManager();
+        // System.getProperty("os.version");
+
+        String lang       = "en";
+        String text = "blahblah"/* bluetoothName */;
+        byte[] textBytes  = text.getBytes();
+        byte[] langBytes  = lang.getBytes("US-ASCII");
+        int    langLength = langBytes.length;
+        int    textLength = textBytes.length;
+
+        byte[] payload    = new byte[1 + langLength + textLength];
+
+        // set status byte (see NDEF spec for actual bits)
+        payload[0] = (byte) langLength;
+
+        // copy langbytes and textbytes into payload
+        System.arraycopy(langBytes, 0, payload, 1, langLength);
+        System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
+
+        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
+
+        return recordNFC;
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent){
+        Log.d(TAG, "onNewIntent");
+        ctx=this;
+        if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
+            TextView textView = (TextView) findViewById(R.id.title2);
+            textView.setText("Hello NFC tag!");
+         //   Toast.makeText(ctx, ctx.getString(R.string.hello_tag), Toast.LENGTH_LONG ).show();
+            mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+            // Read tag
+            new NdefReaderTask().execute(mytag);
+         //   readMessages(intent);
+            Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
+            // write to tag
+            try {
+                write(mytag);
+                Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
+            } catch (IOException e) {
+                Toast.makeText(ctx, ctx.getString(R.string.error_writing), Toast.LENGTH_LONG ).show();
+                e.printStackTrace();
+            } catch (FormatException e) {
+                Toast.makeText(ctx, ctx.getString(R.string.error_writing) , Toast.LENGTH_LONG ).show();
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Phone's Bluetooth name
+    private String getLocalBluetoothName(){
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        String name = mBluetoothAdapter.getName();
+        //  String address = mBluetoothAdapter.getAddress();
+        if(name == null){
+            Log.d(TAG, "Name is null!");
+            name = mBluetoothAdapter.getAddress();
+        }
+        return name;
+    }
+
+
+    // Activate device vibrator for 500 ms
     private void vibrate() {
         Log.d(TAG, "vibrate");
 
@@ -200,53 +216,22 @@ public class MainActivity extends AppCompatActivity {
         vibe.vibrate(500);
     }
 
-    public void handleBluetooth() {
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-        } else {
-            if (!mBluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            }
-            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-            if (pairedDevices.size() > 0) {
-                String device_name = null;
-                //ArrayAdapter mArrayAdapter = new ArrayAdapter<String>(this, device_name);
-                for (BluetoothDevice device : pairedDevices) {
-                    TextView textView = (TextView) findViewById(R.id.title);
-                    textView.setText(device.getName() + "\n" + device.getAddress());
-                }
-                //AcceptThread acceptThread = new AcceptThread();
 
-            }
-        }
-    }
-
-    public void enableForegroundMode() {
-        Log.d(TAG, "enableForegroundMode");
-        // foreground mode gives the current active application priority for reading scanned tags
-        writeMode = true;
-        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-        IntentFilter[] writeTagFilters = new IntentFilter[]{tagDetected};
-        nfcAdapter.enableForegroundDispatch(this, nfcPendingIntent, writeTagFilters, null);
-    }
-
-    public void disableForegroundMode() {
-        Log.d(TAG, "disableForegroundMode");
-        writeMode = false;
-        nfcAdapter.disableForegroundDispatch(this);
-    }
+    // Background task for reading the data. Do not block the UI thread while reading.
 
     private class NdefReaderTask extends AsyncTask<Tag, Void, String> {
         @Override
         protected String doInBackground(Tag... params) {
             Tag tag = params[0];
+
             Ndef ndef = Ndef.get(tag);
             if (ndef == null) {
                 // NDEF is not supported by this Tag.
                 return null;
             }
+
             NdefMessage ndefMessage = ndef.getCachedNdefMessage();
+
             NdefRecord[] records = ndefMessage.getRecords();
             for (NdefRecord ndefRecord : records) {
                 if (ndefRecord.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(ndefRecord.getType(), NdefRecord.RTD_TEXT)) {
@@ -257,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+
             return null;
         }
 
@@ -270,68 +256,29 @@ public class MainActivity extends AppCompatActivity {
          * bit_6 reserved for future use, must be 0
          * bit_5..0 length of IANA language code
          */
+
             byte[] payload = record.getPayload();
+
+            // Get the Text Encoding
             String textEncoding = ((payload[0] & 128) == 0) ? "UTF-8" : "UTF-16";
+
+            // Get the Language Code
             int languageCodeLength = payload[0] & 0063;
+
             // String languageCode = new String(payload, 1, languageCodeLength, "US-ASCII");
             // e.g. "en"
+
             // Get the Text
-            return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1, textEncoding);
+            return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
         }
-        private class AcceptThread extends Thread {
-            private final BluetoothServerSocket mmServerSocket;
 
-            public AcceptThread() {
-                // Use a temporary object that is later assigned to mmServerSocket,
-                // because mmServerSocket is final
-                BluetoothServerSocket tmp = null;
-                try {
-                    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                    Method getUuidsMethod = BluetoothAdapter.class.getDeclaredMethod("getUuids", null);
-
-                    ParcelUuid[] uuids = (ParcelUuid[]) getUuidsMethod.invoke(mBluetoothAdapter, null);
-                    TextView textView = (TextView) findViewById(R.id.title);
-                    UUID MY_UUID = UUID.randomUUID();
-                    String NAME = "My_NAME";
-                    for (ParcelUuid uuid : uuids) {
-                        textView.setText("UUID: " + uuid.getUuid().toString());
-                        MY_UUID = uuid.getUuid();
-                    }
-                    // MY_UUID is the app's UUID string, also used by the client code
-                    tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
-                } catch (Exception e) {
-                }
-                mmServerSocket = tmp;
-            }
-
-            public void run() {
-                BluetoothSocket socket = null;
-                // Keep listening until exception occurs or a socket is returned
-                while (true) {
-                    try {
-                        socket = mmServerSocket.accept();
-                        // If a connection was accepted
-                        if (socket != null) {
-                            // Do work to manage the connection (in a separate thread)
-                            //manageConnectedSocket(socket);
-                            mmServerSocket.close();
-                            break;
-                        }
-                    } catch (IOException e) {
-                        break;
-                    }
-                }
-            }
-
-            /**
-             * Will cancel the listening socket, and cause the thread to finish
-             */
-            public void cancel() {
-                try {
-                    mmServerSocket.close();
-                } catch (IOException e) {
-                }
+        @Override
+        protected void onPostExecute(String result) {
+            if (result != null) {
+                mTextView.setText("Tag says: " + result);
             }
         }
     }
+
+
 }
