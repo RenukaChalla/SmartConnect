@@ -214,6 +214,8 @@ public class BTActivity extends Activity {
             switch (view.getId()) {
                 case R.id.imgOn:
                     onBluetooth();
+                    getPairedDevices();
+                    startSearching();
                     break;
                 case R.id.imgSearch:
                     arrayListBluetoothDevices.clear();
@@ -268,7 +270,9 @@ public class BTActivity extends Activity {
                     if(flag == true)
                     {
                         detectedAdapter.add(device.getName()+"\n"+device.getAddress());
-                        arrayListBluetoothDevices.add(device);
+                        if (! arrayListBluetoothDevices.contains(device)) {
+                            arrayListBluetoothDevices.add(device);
+                        }
                         detectedAdapter.notifyDataSetChanged();
                     }
                 }
