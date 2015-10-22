@@ -47,8 +47,8 @@
     <ListView
         android:id="@+id/listViewPaired"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:label="@string/Paired_Devices">
+        android:layout_height="200dp"
+        android:smoothScrollbar="true">
     </ListView>
     <TextView
         android:layout_width="wrap_content"
@@ -60,7 +60,7 @@
     <ListView
         android:id="@+id/listViewDetected"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:smoothScrollbar="true">
     </ListView>
 

@@ -1,13 +1,16 @@
 package com.rfid.smartconnect.smartconnect;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,11 +27,13 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.UUID;
 
-public class BTActivity extends Activity {
+public class BTActivity extends Activity implements Runnable {
 
     ListView listViewPaired;
     ListView listViewDetected;
@@ -44,6 +49,9 @@ public class BTActivity extends Activity {
     BluetoothAdapter bluetoothAdapter = null;
     ArrayList<BluetoothDevice> arrayListBluetoothDevices = null;
     ListItemClicked listItemClicked;
+    private UUID applicationUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private ProgressDialog mBluetoothConnectProgressDialog;
+    private BluetoothSocket mBluetoothSocket;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,8 +100,9 @@ public class BTActivity extends Activity {
         {
             for(BluetoothDevice device : pairedDevice)
             {
-                arrayListpaired.add(device.getName()+"\n"+device.getAddress());
+                arrayListpaired.add(device.getName() + "\n" + device.getAddress());
                 arrayListPairedBluetoothDevices.add(device);
+
             }
         }
         adapter.notifyDataSetChanged();
@@ -122,18 +131,60 @@ public class BTActivity extends Activity {
                     getPairedDevices();
                     adapter.notifyDataSetChanged();
                 }
-            } catch (Exception e) {
+                } catch (Exception e) {
                 e.printStackTrace();
             }//connect(bdDevice);
             Log.i("Log", "The bond is created: "+isBonded);
         }
     }
+    public void run()
+    {
+        try
+        {
+            mBluetoothSocket = bdDevice.createRfcommSocketToServiceRecord(applicationUUID);
+            bluetoothAdapter.cancelDiscovery();
+            mBluetoothSocket.connect();
+            mHandler.sendEmptyMessage(0);
+        }
+        catch (IOException eConnectException)
+        {
+            Log.d("Log", "CouldNotConnectToSocket", eConnectException);
+            closeSocket(mBluetoothSocket);
+            return;
+        }
+    }
+
+    private void closeSocket(BluetoothSocket nOpenSocket)
+    {
+        try
+        {
+            nOpenSocket.close();
+            Log.d("Log", "SocketClosed");
+        }
+        catch (IOException ex)
+        {
+            Toast.makeText(BTActivity.this, "Device Not Connected", Toast.LENGTH_LONG).show();
+            Log.d("Log", "CouldNotCloseSocket");
+        }
+    }
+    private Handler mHandler = new Handler()
+    {
+        @Override
+        public void handleMessage(Message msg)
+        {
+            Toast.makeText(BTActivity.this, "Device Connected", Toast.LENGTH_LONG).show();
+        }
+    };
     class ListItemClickedonPaired implements AdapterView.OnItemClickListener
     {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
             bdDevice = arrayListPairedBluetoothDevices.get(position);
             try {
+                Log.v("Log", "Coming incoming address " + bdDevice.getAddress());
+                Thread mBlutoothConnectThread = new Thread(BTActivity.this);
+                mBlutoothConnectThread.start();
+/*
                 Boolean removeBonding = removeBond(bdDevice);
                 if(removeBonding)
                 {
@@ -143,12 +194,14 @@ public class BTActivity extends Activity {
 
 
                 Log.i("Log", "Removed"+removeBonding);
+                */
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
     }
+
     /*private void callThread() {
         new Thread(){
             public void run() {
@@ -218,7 +271,6 @@ public class BTActivity extends Activity {
                     startSearching();
                     break;
                 case R.id.imgSearch:
-                    arrayListBluetoothDevices.clear();
                     startSearching();
                     break;
                 case R.id.imgDisc:
@@ -254,7 +306,9 @@ public class BTActivity extends Activity {
                 if(arrayListBluetoothDevices.size()<1) // this checks if the size of bluetooth device is 0,then add the
                 {                                           // device to the arraylist.
                     detectedAdapter.add(device.getName()+"\n"+device.getAddress());
-                    arrayListBluetoothDevices.add(device);
+                    if (!(arrayListBluetoothDevices.contains(device))){
+                        arrayListBluetoothDevices.add(device);
+                    }
                     detectedAdapter.notifyDataSetChanged();
                 }
                 else
