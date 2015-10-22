@@ -36,17 +36,32 @@
             android:background="@drawable/bluetooth_off" />
     </LinearLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Paired_Devices"
+        android:id="@+id/txtPairedDevices"
+        android:layout_gravity="center_horizontal|left"
+        android:textColor="#008080"/>
+
     <ListView
         android:id="@+id/listViewPaired"
         android:layout_width="match_parent"
-        android:layout_height="120dp">
-
+        android:layout_height="200dp"
+        android:smoothScrollbar="true">
     </ListView>
-
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Available_Devices"
+        android:id="@+id/txtAvailableDevices"
+        android:layout_gravity="center_horizontal|left"
+        android:textColor="#008080"/>
     <ListView
         android:id="@+id/listViewDetected"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
+        android:layout_height="match_parent"
+        android:smoothScrollbar="true">
     </ListView>
+
 </LinearLayout>

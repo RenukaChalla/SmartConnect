@@ -24,17 +24,22 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.bluetooth.BluetoothAdapter;
-
-import static java.lang.Integer.parseInt;
+import android.bluetooth.BluetoothDevice;
 
 @SuppressLint({ "ParserError", "ParserError" })
-public class   MainActivity extends Activity {
+public class MainActivity extends Activity {
 
     private static String TAG = MainActivity.class.getSimpleName();
     protected NfcAdapter adapter;
@@ -246,7 +251,6 @@ public class   MainActivity extends Activity {
          //   readMessages(intent);
             Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
             // write to tag
-            //TODO: write only if device paired
             try {
                 write(mytag);
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();

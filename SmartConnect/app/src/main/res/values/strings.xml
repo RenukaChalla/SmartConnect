@@ -8,7 +8,10 @@
     <string name="ok_writing">TAG WRITTEN!</string>
     <string name="error_writing">ERROR DURING WRITING. MAKE SURE THE TAG IS CLOSE TO THE PHONE</string>
     <string name="ok_detection">TAG DETECTED: </string>
+    <string name="hello_tag">"Hello NFC tag!"</string>
     <string name="title_activity_bluetooth">BluetoothActivity</string>
     <string name="title_activity_bt">BTActivity</string>
-    <string name="hello_tag">"Hello NFC tag!"</string>
+    <string name="Paired_Devices">"Paired Devices"</string>
+    <string name="Available_Devices">"Available Devices"</string>
+
 </resources>
