@@ -2,54 +2,39 @@ package com.rfid.smartconnect.smartconnect;
 
 //import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
-import org.ndeftools.Message;
 import org.ndeftools.Record;
 import org.ndeftools.externaltype.AndroidApplicationRecord;
 import android.annotation.SuppressLint;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.FormatException;
-import android.nfc.tech.NdefFormatable;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.os.Vibrator;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+
+import static java.lang.Integer.parseInt;
 
 @SuppressLint({ "ParserError", "ParserError" })
-public class MainActivity extends Activity {
+public class   MainActivity extends Activity {
 
     private static String TAG = MainActivity.class.getSimpleName();
     protected NfcAdapter adapter;
@@ -126,10 +111,28 @@ public class MainActivity extends Activity {
         }
     }
 
+    private NdefRecord readRecordN(int n) {
+
+        Ndef ndef = Ndef.get(mytag);
+        if (ndef == null) {
+            // NDEF is not supported by this Tag.
+            return null;
+        }
+
+        NdefMessage ndefMessage = ndef.getCachedNdefMessage();
+
+        NdefRecord[] records = ndefMessage.getRecords();
+        return records[n];
+    }
+
     // Function for writing to tag
     private void write(Tag tag) throws IOException, FormatException {
-
-        NdefRecord[] records = { createRecord(/* TODO:"headsetBluetoothName" */) };
+        String phoneName = getLocalBluetoothName();
+        /*TODO: 2 conditions for write: 1 when headset paired for 1st time: NdefRecord[] records = { createRecord(headset_name),
+         createRecord(1), createRecord(phoneName); }
+         2 when headset_name found in paired device: NdefRecord[] records = { createRecord(headset_name),record_freq(),
+         createRecord(phoneName) };*/
+        NdefRecord[] records = { createRecord("blah"),record_freq(),createRecord(phoneName) };
         NdefMessage  message = new NdefMessage(records);
         // Get an instance of Ndef for the tag.
         Ndef ndef = Ndef.get(tag);
@@ -143,12 +146,55 @@ public class MainActivity extends Activity {
     }
 
     // Function to create record for tag
-    private NdefRecord createRecord(/*TODO: String bluetoothName*/) throws UnsupportedEncodingException {
+    private NdefRecord createRecord(String deviceName) throws UnsupportedEncodingException {
         // PackageManager pm = getPackageManager();
         // System.getProperty("os.version");
 
         String lang       = "en";
-        String text = "blahblah"/* bluetoothName */;
+        String text = deviceName;
+        byte[] textBytes  = text.getBytes();
+        byte[] langBytes  = lang.getBytes("US-ASCII");
+        int    langLength = langBytes.length;
+        int    textLength = textBytes.length;
+
+        byte[] payload    = new byte[1 + langLength + textLength];
+
+        // set status byte (see NDEF spec for actual bits)
+        payload[0] = (byte) langLength;
+
+        // copy langbytes and textbytes into payload
+        System.arraycopy(langBytes, 0, payload, 1, langLength);
+        System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
+
+        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
+        //TODO: if device already in paired devices list, add another record to write
+
+        return recordNFC;
+    }
+
+    private NdefRecord record_freq() throws UnsupportedEncodingException {
+        String lang = "en";
+        String freq = null;
+        int frequency = 0;
+        // record[0]=headset name, record[1]=frequency of use, record[2..]=phone's bluetooth name
+        NdefRecord freq_block = readRecordN(1);
+
+        if (freq_block.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(freq_block.getType(), NdefRecord.RTD_TEXT)) {
+            try {
+                frequency = tryParse(readRecordText(freq_block));
+              //  frequency = parseInt(readRecordText(freq_block));
+                if(frequency == 0) {
+                    frequency += 1;
+                }
+                else {
+                    frequency += 1;
+                }
+                freq = String.valueOf(frequency);
+            } catch (UnsupportedEncodingException e) {
+                Log.e(TAG, "Unsupported Encoding", e);
+            }
+        }
+        String text = freq;
         byte[] textBytes  = text.getBytes();
         byte[] langBytes  = lang.getBytes("US-ASCII");
         int    langLength = langBytes.length;
@@ -168,6 +214,24 @@ public class MainActivity extends Activity {
         return recordNFC;
     }
 
+    public static int tryParse(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    private String readRecordText(NdefRecord record) throws UnsupportedEncodingException{
+
+        byte[] payload = record.getPayload();
+
+        // Get the Language Code
+        int languageCodeLength = payload[0] & 0063;
+
+        // Get the Text
+        return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
+    }
+
     @Override
     protected void onNewIntent(Intent intent){
         Log.d(TAG, "onNewIntent");
@@ -182,6 +246,7 @@ public class MainActivity extends Activity {
          //   readMessages(intent);
             Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
             // write to tag
+            //TODO: write only if device paired
             try {
                 write(mytag);
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
@@ -269,10 +334,12 @@ public class MainActivity extends Activity {
             // e.g. "en"
 
             // Get the Text
+            String stuff = new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
+         //   mTextView.setText("Tag says: %s" + stuff);
             return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
         }
 
-        @Override
+        //@Override
         protected void onPostExecute(String result) {
             if (result != null) {
                 mTextView.setText("Tag says: " + result);
