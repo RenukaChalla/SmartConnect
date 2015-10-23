@@ -1,6 +1,6 @@
 package com.rfid.smartconnect.smartconnect;
 
-
+//import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -129,10 +129,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private NdefRecord readRecordN(int n) {
+
+        Ndef ndef = Ndef.get(mytag);
+        if (ndef == null) {
+            // NDEF is not supported by this Tag.
+            return null;
+        }
+
+        NdefMessage ndefMessage = ndef.getCachedNdefMessage();
+
+        NdefRecord[] records = ndefMessage.getRecords();
+        return records[n];
+    }
+
+    
     // Function for writing to tag
     private void write(Tag tag) throws IOException, FormatException {
 
         NdefRecord[] records = { createRecord(/* TODO:"headsetBluetoothName" */) };
+        /*TODO: 2 conditions for write: 1 when headset paired for 1st time: NdefRecord[] records = { createRecord(headset_name),
+         createRecord(1), createRecord(phoneName); }
+         2 when headset_name found in paired device: NdefRecord[] records = { createRecord(headset_name),record_freq(),
+         createRecord(phoneName) };*/
+        
         NdefMessage  message = new NdefMessage(records);
         // Get an instance of Ndef for the tag.
         Ndef ndef = Ndef.get(tag);
@@ -151,9 +171,6 @@ public class MainActivity extends AppCompatActivity {
         // System.getProperty("os.version");
 
         String lang       = "en";
-        //BluetoothDevice.EXTRA_DEVICE = "F0:B4:79:08:BE:93";
-        //BluetoothDevice device = new BluetoothDevice(BluetoothDevice.EXTRA_DEVICE);
-        //String name = "renu";
         String text = bdDevice.getName()+","+bdDevice.getAddress();//"renu,F0:B4:79:08:BE:93"/* bluetoothName */;
         byte[] textBytes  = text.getBytes();
         byte[] langBytes  = lang.getBytes("US-ASCII");
@@ -172,6 +189,66 @@ public class MainActivity extends AppCompatActivity {
         NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
 
         return recordNFC;
+    }
+
+    private NdefRecord record_freq() throws UnsupportedEncodingException {
+        String lang = "en";
+        String freq = null;
+        int frequency = 0;
+        // record[0]=headset name, record[1]=frequency of use, record[2..]=phone's bluetooth name
+        NdefRecord freq_block = readRecordN(1);
+
+        if (freq_block.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(freq_block.getType(), NdefRecord.RTD_TEXT)) {
+            try {
+                frequency = tryParse(readRecordText(freq_block));
+              //  frequency = parseInt(readRecordText(freq_block));
+                if(frequency == 0) {
+                    frequency += 1;
+                }
+                else {
+                    frequency += 1;
+                }
+                freq = String.valueOf(frequency);
+            } catch (UnsupportedEncodingException e) {
+                Log.e(TAG, "Unsupported Encoding", e);
+            }
+        }
+        String text = freq;
+        byte[] textBytes  = text.getBytes();
+        byte[] langBytes  = lang.getBytes("US-ASCII");
+        int    langLength = langBytes.length;
+        int    textLength = textBytes.length;
+
+        byte[] payload    = new byte[1 + langLength + textLength];
+
+        // set status byte (see NDEF spec for actual bits)
+        payload[0] = (byte) langLength;
+
+        // copy langbytes and textbytes into payload
+        System.arraycopy(langBytes, 0, payload, 1, langLength);
+        System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
+
+        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
+
+        return recordNFC;
+    }
+
+    public static int tryParse(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    private String readRecordText(NdefRecord record) throws UnsupportedEncodingException{
+
+        byte[] payload = record.getPayload();
+
+        // Get the Language Code
+        int languageCodeLength = payload[0] & 0063;
+
+        // Get the Text
+        return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
     }
 
     @Override
@@ -269,6 +346,8 @@ public class MainActivity extends AppCompatActivity {
             // String languageCode = new String(payload, 1, languageCodeLength, "US-ASCII");
             // e.g. "en"
             // Get the Text
+            String stuff = new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
+         //   mTextView.setText("Tag says: %s" + stuff);
             return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
         }
 
