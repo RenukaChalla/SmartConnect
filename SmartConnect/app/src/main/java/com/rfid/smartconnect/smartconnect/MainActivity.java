@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     Tag mytag;
     Context ctx;
     private TextView mTextView;
+    BluetoothDevice bdDevice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume(){
         super.onResume();
+        bdDevice = getIntent().getParcelableExtra("bt_device");
         Log.d(TAG, "onResume");
         WriteModeOn();
     }
@@ -149,7 +151,10 @@ public class MainActivity extends AppCompatActivity {
         // System.getProperty("os.version");
 
         String lang       = "en";
-        String text = "blahblah"/* bluetoothName */;
+        //BluetoothDevice.EXTRA_DEVICE = "F0:B4:79:08:BE:93";
+        //BluetoothDevice device = new BluetoothDevice(BluetoothDevice.EXTRA_DEVICE);
+        //String name = "renu";
+        String text = bdDevice.getName()+","+bdDevice.getAddress();//"renu,F0:B4:79:08:BE:93"/* bluetoothName */;
         byte[] textBytes  = text.getBytes();
         byte[] langBytes  = lang.getBytes("US-ASCII");
         int    langLength = langBytes.length;
@@ -182,6 +187,9 @@ public class MainActivity extends AppCompatActivity {
             new NdefReaderTask().execute(mytag);
          //   readMessages(intent);
             Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
+           /* Intent btintent = new Intent(this, BTActivity.class);
+            btintent.putExtra("device_name", mytag.toString());
+            startActivity(btintent);*/
             // write to tag
             try {
                 write(mytag);

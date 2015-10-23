@@ -80,6 +80,7 @@ public class BTActivity extends Activity implements Runnable {
         listItemClicked = new ListItemClicked();
         detectedAdapter.notifyDataSetChanged();
         listViewPaired.setAdapter(adapter);
+        //bdDevice = getIntent().getStringExtra("device_name");
     }
 
     @Override
@@ -94,6 +95,13 @@ public class BTActivity extends Activity implements Runnable {
         listViewDetected.setOnItemClickListener(listItemClicked);
         listViewPaired.setOnItemClickListener(listItemClickedonPaired);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bluetoothConnect(bdDevice);
+    }
+
     private void getPairedDevices() {
         Set<BluetoothDevice> pairedDevice = bluetoothAdapter.getBondedDevices();
         if(pairedDevice.size()>0)
@@ -130,6 +138,11 @@ public class BTActivity extends Activity implements Runnable {
                     //adapter.notifyDataSetChanged();
                     getPairedDevices();
                     adapter.notifyDataSetChanged();
+                    //write to NFC tag
+                    Intent nfcintent = new Intent(BTActivity.this,MainActivity.class);
+                    nfcintent.putExtra("bt_device",bdDevice);
+                    //nfcintent.putExtra("bt_address", bdDevice.getAddress());
+                    startActivity(nfcintent);
                 }
                 } catch (Exception e) {
                 e.printStackTrace();
@@ -180,10 +193,15 @@ public class BTActivity extends Activity implements Runnable {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
             bdDevice = arrayListPairedBluetoothDevices.get(position);
-            try {
-                Log.v("Log", "Coming incoming address " + bdDevice.getAddress());
-                Thread mBlutoothConnectThread = new Thread(BTActivity.this);
-                mBlutoothConnectThread.start();
+            bluetoothConnect(bdDevice);
+
+        }
+    }
+    private void bluetoothConnect(BluetoothDevice bdDevice){
+        try {
+            Log.v("Log", "Coming incoming address " + bdDevice.getAddress());
+            Thread mBlutoothConnectThread = new Thread(BTActivity.this);
+            mBlutoothConnectThread.start();
 /*
                 Boolean removeBonding = removeBond(bdDevice);
                 if(removeBonding)
@@ -195,10 +213,9 @@ public class BTActivity extends Activity implements Runnable {
 
                 Log.i("Log", "Removed"+removeBonding);
                 */
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
