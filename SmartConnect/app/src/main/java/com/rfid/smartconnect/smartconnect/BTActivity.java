@@ -54,7 +54,6 @@ public class BTActivity extends AppCompatActivity implements Runnable, View.OnCl
     private String bt_device_address;
     private String bt_device_name;
     private BluetoothAdapter bluetoothAdapter;
-    public static final int BOND_BONDED = 12;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +95,7 @@ public class BTActivity extends AppCompatActivity implements Runnable, View.OnCl
         imgOff.setOnClickListener(this);
         listViewDetected.setOnItemClickListener(listItemClicked);
         listViewPaired.setOnItemClickListener(listItemClickedOnPaired);
+        listViewPaired.setOnItemLongClickListener(listItemLongClickedOnPaired);
     }
 
     private void initUi() {
@@ -160,20 +160,26 @@ public class BTActivity extends AppCompatActivity implements Runnable, View.OnCl
             //connect(bdDevice);
             Boolean isBonded = false;
             try {
-                isBonded = createBond(bdDevice);
+                synchronized (bdDevice) {
+                    isBonded = createBond(bdDevice);
+
+                }
+                synchronized (bdDevice){
+                    Thread.sleep(15000);
                 if (isBonded) {
                     //arrayListpaired.add(bdDevice.getName()+"\n"+bdDevice.getAddress());
                     //adapter.notifyDataSetChanged();
                     getPairedDevices();
                     adapter.notifyDataSetChanged();
-                    if (bdDevice.getBondState() == BOND_BONDED) {
+                    if (bdDevice.getBondState() == BluetoothDevice.BOND_BONDED || bdDevice.getBondState() == BluetoothDevice.BOND_BONDING) {
                         //write to NFC tag
                         Intent nfcintent = new Intent(BTActivity.this, MainActivity.class);
                         nfcintent.putExtra("bt_device", bdDevice);
                         //nfcintent.putExtra("bt_address", bdDevice.getAddress());
                         startActivity(nfcintent);
                     }
-
+                    Log.i("Log", "The device bond state is: " + bdDevice.getBondState());
+                }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -220,20 +226,32 @@ public class BTActivity extends AppCompatActivity implements Runnable, View.OnCl
         }
     };
 
+    private AdapterView.OnItemLongClickListener listItemLongClickedOnPaired = new AdapterView.OnItemLongClickListener() {
+        @Override
+        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            try {
+                Boolean removeBonding = removeBond(bdDevice);
+                if (removeBonding) {
+                    arrayListpaired.remove(position);
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(BTActivity.this, "Device removed from paired list", Toast.LENGTH_LONG).show();
+                    return true;
+                }
+                Log.i("Log", "Removed" + removeBonding);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return false;
+        }
+    };
+
     private void bluetoothConnect(String bt_device_name, String bt_device_address) {
         try {
             bdDevice = bluetoothAdapter.getRemoteDevice(bt_device_address);
             Log.v("Log", "Coming incoming address " + bt_device_address);
             Thread mBlutoothConnectThread = new Thread(BTActivity.this);
             mBlutoothConnectThread.start();
-            /*
-            Boolean removeBonding = removeBond(bdDevice);
-            if(removeBonding) {
-                arrayListpaired.remove(position);
-                adapter.notifyDataSetChanged();
-            }
-            Log.i("Log", "Removed"+removeBonding);
-            */
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -282,7 +300,7 @@ public class BTActivity extends AppCompatActivity implements Runnable, View.OnCl
     }
 
 
-    public boolean createBond(BluetoothDevice btDevice) throws Exception {
+    public synchronized boolean createBond(BluetoothDevice btDevice) throws Exception {
         Class class1 = Class.forName("android.bluetooth.BluetoothDevice");
         Method createBondMethod = class1.getMethod("createBond");
         Boolean returnValue = (Boolean) createBondMethod.invoke(btDevice);

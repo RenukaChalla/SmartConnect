@@ -56,12 +56,12 @@ public class MainActivity extends AppCompatActivity {
     private static String TAG = MainActivity.class.getSimpleName();
     protected NfcAdapter adapter;
     protected PendingIntent pendingIntent;
-    IntentFilter writeTagFilters[];
+    private IntentFilter writeTagFilters[];
     boolean writeMode;
-    Tag mytag;
-    Context ctx;
+    private Tag mytag;
+    private Context ctx;
     private TextView mTextView;
-    BluetoothDevice bdDevice;
+    private BluetoothDevice bdDevice;
     private String device_name;
     private  String device_address;
     private StringTokenizer bdtkn;
@@ -77,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
         tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
         writeTagFilters = new IntentFilter[] { tagDetected };
-
     }
 
     @Override
@@ -113,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Function to read from the tag
-    public void readMessages(Intent intent) {
+   /* public void readMessages(Intent intent) {
         Parcelable[] messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
         if (messages != null) {
             Log.d(TAG, "Found " + messages.length + " NDEF messages");
@@ -138,22 +137,18 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
-    }
+    } */
 
-    private NdefRecord readRecordN(int n) {
-
+   /* private NdefRecord readRecordN(int n) {
         Ndef ndef = Ndef.get(mytag);
         if (ndef == null) {
             // NDEF is not supported by this Tag.
             return null;
         }
-
         NdefMessage ndefMessage = ndef.getCachedNdefMessage();
-
         NdefRecord[] records = ndefMessage.getRecords();
         return records[n];
-    }
-
+    }*/
 
     // Function for writing to tag
     private void write(Tag tag) throws IOException, FormatException {
@@ -163,7 +158,6 @@ public class MainActivity extends AppCompatActivity {
          createRecord(1), createRecord(phoneName); }
          2 when headset_name found in paired device: NdefRecord[] records = { createRecord(headset_name),record_freq(),
          createRecord(phoneName) };*/
-
         NdefMessage  message = new NdefMessage(records);
         // Get an instance of Ndef for the tag.
         Ndef ndef = Ndef.get(tag);
@@ -178,31 +172,23 @@ public class MainActivity extends AppCompatActivity {
 
     // Function to create record for tag
     private NdefRecord createRecord(/*TODO: String bluetoothName*/) throws UnsupportedEncodingException {
-        // PackageManager pm = getPackageManager();
-        // System.getProperty("os.version");
-
         String lang       = "en";
         String text = bdDevice.getName()+","+bdDevice.getAddress();//"renu,F0:B4:79:08:BE:93"/* bluetoothName */;
         byte[] textBytes  = text.getBytes();
         byte[] langBytes  = lang.getBytes("US-ASCII");
         int    langLength = langBytes.length;
         int    textLength = textBytes.length;
-
         byte[] payload    = new byte[1 + langLength + textLength];
-
         // set status byte (see NDEF spec for actual bits)
         payload[0] = (byte) langLength;
-
         // copy langbytes and textbytes into payload
         System.arraycopy(langBytes, 0, payload, 1, langLength);
         System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
-
         NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
-
         return recordNFC;
     }
 
-    private NdefRecord record_freq() throws UnsupportedEncodingException {
+    /*private NdefRecord record_freq() throws UnsupportedEncodingException {
         String lang = "en";
         String freq = null;
         int frequency = 0;
@@ -242,22 +228,20 @@ public class MainActivity extends AppCompatActivity {
         NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
 
         return recordNFC;
-    }
+    }*/
 
-    public static int tryParse(String text) {
+   /* public static int tryParse(String text) {
         try {
             return Integer.parseInt(text);
         } catch (NumberFormatException e) {
             return 0;
         }
-    }
+    }*/
+
     private String readRecordText(NdefRecord record) throws UnsupportedEncodingException{
-
         byte[] payload = record.getPayload();
-
         // Get the Language Code
         int languageCodeLength = payload[0] & 0063;
-
         // Get the Text
         return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
     }
@@ -269,15 +253,10 @@ public class MainActivity extends AppCompatActivity {
         if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
             TextView textView = (TextView) findViewById(R.id.title2);
             textView.setText("Hello NFC tag!");
-            //   Toast.makeText(ctx, ctx.getString(R.string.hello_tag), Toast.LENGTH_LONG ).show();
-            mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            // Read tag
-            new NdefReaderTask().execute(mytag);
             //   readMessages(intent);
-            Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
-
+//            Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
             // write to tag
-            /*try {
+            try {
                 write(mytag);
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
             } catch (IOException e) {
@@ -286,27 +265,13 @@ public class MainActivity extends AppCompatActivity {
             } catch (FormatException e) {
                 Toast.makeText(ctx, ctx.getString(R.string.error_writing) , Toast.LENGTH_LONG ).show();
                 e.printStackTrace();
-            }*/
+            }
         }
     }
-
-    // Phone's Bluetooth name
-    private String getLocalBluetoothName(){
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        String name = mBluetoothAdapter.getName();
-        //  String address = mBluetoothAdapter.getAddress();
-        if(name == null){
-            Log.d(TAG, "Name is null!");
-            name = mBluetoothAdapter.getAddress();
-        }
-        return name;
-    }
-
 
     // Activate device vibrator for 500 ms
     private void vibrate() {
         Log.d(TAG, "vibrate");
-
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibe.vibrate(500);
     }
@@ -314,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Background task for reading the data. Do not block the UI thread while reading.
 
-    private class NdefReaderTask extends AsyncTask<Tag, Void, String> {
+   /* private class NdefReaderTask extends AsyncTask<Tag, Void, String> {
         @Override
         protected String doInBackground(Tag... params) {
             Tag tag = params[0];
@@ -335,9 +300,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             return null;
-        }
+        }*/
 
-        private String readText(NdefRecord record) throws UnsupportedEncodingException {
+        /*private String readText(NdefRecord record) throws UnsupportedEncodingException {
 
             byte[] payload = record.getPayload();
             // Get the Text Encoding
@@ -364,5 +329,5 @@ public class MainActivity extends AppCompatActivity {
                 mTextView.setText("Tag says: " + result);
             }
         }
-    }
+    }*/
 }

@@ -40,4 +40,12 @@
             android:text="Pair" />
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tag says "
+        android:textColor="#008080"
+        android:id="@+id/txtview"
+        android:textSize="@dimen/abc_action_button_min_width_material"
+        android:textAlignment="center" />
 </LinearLayout>
