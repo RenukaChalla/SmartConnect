@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.UUID;
 
 import org.ndeftools.Message;
@@ -61,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     Context ctx;
     private TextView mTextView;
     BluetoothDevice bdDevice;
+    private String device_name;
+    private  String device_address;
+    private StringTokenizer bdtkn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +85,13 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         Log.d(TAG, "onPause");
         WriteModeOff();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        bdDevice = getIntent().getParcelableExtra("bt_device");
+        Log.d(TAG, "onStart");
     }
 
     @Override
@@ -143,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         return records[n];
     }
 
-    
+
     // Function for writing to tag
     private void write(Tag tag) throws IOException, FormatException {
 
@@ -152,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
          createRecord(1), createRecord(phoneName); }
          2 when headset_name found in paired device: NdefRecord[] records = { createRecord(headset_name),record_freq(),
          createRecord(phoneName) };*/
-        
+
         NdefMessage  message = new NdefMessage(records);
         // Get an instance of Ndef for the tag.
         Ndef ndef = Ndef.get(tag);
@@ -201,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
         if (freq_block.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(freq_block.getType(), NdefRecord.RTD_TEXT)) {
             try {
                 frequency = tryParse(readRecordText(freq_block));
-              //  frequency = parseInt(readRecordText(freq_block));
+                //  frequency = parseInt(readRecordText(freq_block));
                 if(frequency == 0) {
                     frequency += 1;
                 }
@@ -258,17 +269,15 @@ public class MainActivity extends AppCompatActivity {
         if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
             TextView textView = (TextView) findViewById(R.id.title2);
             textView.setText("Hello NFC tag!");
-         //   Toast.makeText(ctx, ctx.getString(R.string.hello_tag), Toast.LENGTH_LONG ).show();
+            //   Toast.makeText(ctx, ctx.getString(R.string.hello_tag), Toast.LENGTH_LONG ).show();
             mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
             // Read tag
             new NdefReaderTask().execute(mytag);
-         //   readMessages(intent);
+            //   readMessages(intent);
             Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
-           /* Intent btintent = new Intent(this, BTActivity.class);
-            btintent.putExtra("device_name", mytag.toString());
-            startActivity(btintent);*/
+
             // write to tag
-            try {
+            /*try {
                 write(mytag);
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
             } catch (IOException e) {
@@ -277,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (FormatException e) {
                 Toast.makeText(ctx, ctx.getString(R.string.error_writing) , Toast.LENGTH_LONG ).show();
                 e.printStackTrace();
-            }
+            }*/
         }
     }
 
@@ -338,7 +347,14 @@ public class MainActivity extends AppCompatActivity {
             // e.g. "en"
             // Get the Text
             String stuff = new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
-         //   mTextView.setText("Tag says: %s" + stuff);
+            //   mTextView.setText("Tag says: %s" + stuff);
+            bdtkn = new StringTokenizer(stuff,",");
+            device_name = bdtkn.nextToken();
+            device_address = bdtkn.nextToken();
+            Intent btintent = new Intent(MainActivity.this, BTActivity.class);
+            btintent.putExtra("bt_device_name", device_name);
+            btintent.putExtra("bt_device_address", device_address);
+            startActivity(btintent);
             return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1);
         }
 
