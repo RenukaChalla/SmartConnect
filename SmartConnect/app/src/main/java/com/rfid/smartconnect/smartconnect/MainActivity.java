@@ -253,12 +253,14 @@ public class MainActivity extends AppCompatActivity {
         if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
             TextView textView = (TextView) findViewById(R.id.title2);
             textView.setText("Hello NFC tag!");
+            mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
             //   readMessages(intent);
-//            Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
+            Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG ).show();
             // write to tag
             try {
                 write(mytag);
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
+                mTextView.setText("Tag says: " + bdDevice.getName()+","+bdDevice.getAddress());
             } catch (IOException e) {
                 Toast.makeText(ctx, ctx.getString(R.string.error_writing), Toast.LENGTH_LONG ).show();
                 e.printStackTrace();
