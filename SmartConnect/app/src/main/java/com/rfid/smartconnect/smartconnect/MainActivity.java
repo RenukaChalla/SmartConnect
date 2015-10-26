@@ -2,23 +2,35 @@ package com.rfid.smartconnect.smartconnect;
 
 //import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.UUID;
 
+import org.ndeftools.Message;
 import org.ndeftools.Record;
 import org.ndeftools.externaltype.AndroidApplicationRecord;
 import android.annotation.SuppressLint;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothServerSocket;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
 import android.nfc.FormatException;
+import android.nfc.tech.NdefFormatable;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
@@ -51,6 +63,10 @@ public class MainActivity extends Activity {
     Context ctx;
     private TextView mTextView;
 
+    private BluetoothDevice bdDevice;
+    private String device_name;
+    private  String device_address;
+    private StringTokenizer bdtkn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,8 +130,16 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public void onResume() {
+    public void onStart() {
+        super.onStart();
+        bdDevice = getIntent().getParcelableExtra("bt_device");
+        Log.d(TAG, "onStart");
+    }
+
+    @Override
+    public void onResume(){
         super.onResume();
+        bdDevice = getIntent().getParcelableExtra("bt_device");
         Log.d(TAG, "onResume");
         WriteModeOn();
     }
@@ -232,7 +256,7 @@ public class MainActivity extends Activity {
     // Function to create record for tag
     private NdefRecord createRecord(String deviceName) throws UnsupportedEncodingException {
         String lang       = "en";
-        String text = deviceName;
+        String text = bdDevice.getName()+","+bdDevice.getAddress();//"renu,F0:B4:79:08:BE:93"/* bluetoothName */;
         byte[] textBytes  = text.getBytes();
         byte[] langBytes  = lang.getBytes("US-ASCII");
         int    langLength = langBytes.length;
@@ -248,7 +272,6 @@ public class MainActivity extends Activity {
         System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
 
         NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
-
         return recordNFC;
     }
 

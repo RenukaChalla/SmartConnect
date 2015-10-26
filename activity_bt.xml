@@ -2,66 +2,103 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff"
     android:orientation="vertical">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/imgOn"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:background="@drawable/bluetooth_on" />
-
-        <ImageView
-            android:id="@+id/imgDisc"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:background="@drawable/bluetooth_discover" />
-
-        <ImageView
-            android:id="@+id/imgSearch"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:background="@drawable/bluetooth_search" />
-
-        <ImageView
-            android:id="@+id/imgOff"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:background="@drawable/bluetooth_off" />
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/Paired_Devices"
-        android:id="@+id/txtPairedDevices"
-        android:layout_gravity="center_horizontal|left"
-        android:textColor="#008080"/>
-
-    <ListView
-        android:id="@+id/listViewPaired"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:smoothScrollbar="true">
-    </ListView>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/Available_Devices"
-        android:id="@+id/txtAvailableDevices"
-        android:layout_gravity="center_horizontal|left"
-        android:textColor="#008080"/>
-    <ListView
-        android:id="@+id/listViewDetected"
-        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:smoothScrollbar="true">
-    </ListView>
+        android:background="#eeeeee"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imgOn"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:padding="20dp"
+                android:src="@drawable/bluetooth_on" />
+
+            <ImageView
+                android:id="@+id/imgDisc"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:padding="15dp"
+                android:src="@drawable/explore" />
+
+            <ImageView
+                android:id="@+id/imgSearch"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:padding="10dp"
+                android:src="@drawable/bluetooth_search" />
+
+            <ImageView
+                android:id="@+id/imgOff"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:padding="20dp"
+                android:src="@drawable/bluetooth_off" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/paired_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_selector"
+                android:gravity="center"
+                android:text="Paired"
+                android:textColor="#008080"/>
+
+            <TextView
+                android:id="@+id/available_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_selector"
+                android:gravity="center"
+                android:text="Available"
+                android:textColor="#008080"/>
+        </LinearLayout>
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ListView
+                android:id="@+id/listViewPaired"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:smoothScrollbar="true" />
+
+            <ListView
+                android:id="@+id/listViewDetected"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:smoothScrollbar="true" />
+        </RelativeLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

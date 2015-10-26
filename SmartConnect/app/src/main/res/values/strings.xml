@@ -13,5 +13,6 @@
     <string name="title_activity_bt">BTActivity</string>
     <string name="Paired_Devices">"Paired Devices"</string>
     <string name="Available_Devices">"Available Devices"</string>
+    <string name="title_activity_home">HomeActivity</string>
 
 </resources>
