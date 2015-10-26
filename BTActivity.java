@@ -40,7 +40,7 @@ public class BTActivity extends Activity implements Runnable {
     ArrayList<String> arrayListpaired;
     ImageView imgSearch,imgOn,imgDisc,imgOff;
     ArrayAdapter<String> adapter,detectedAdapter;
-    static HandleSeacrh handleSeacrh;
+    static HandleSearch handleSearch;
     BluetoothDevice bdDevice;
     BluetoothClass bdClass;
     ArrayList<BluetoothDevice> arrayListPairedBluetoothDevices;
@@ -66,7 +66,7 @@ public class BTActivity extends Activity implements Runnable {
         arrayListpaired = new ArrayList<String>();
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         clicked = new ButtonClicked();
-        handleSeacrh = new HandleSeacrh();
+        handleSearch = new HandleSearch();
         arrayListPairedBluetoothDevices = new ArrayList<BluetoothDevice>();
         /*
          * the above declaration is just for getting the paired bluetooth devices;
@@ -358,7 +358,7 @@ public class BTActivity extends Activity implements Runnable {
         startActivity(discoverableIntent);
         Log.i("Log", "Discoverable ");
     }
-    class HandleSeacrh extends Handler
+    class HandleSearch extends Handler
     {
         @Override
         public void handleMessage(Message msg) {

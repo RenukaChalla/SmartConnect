@@ -44,8 +44,8 @@ public class MainActivity extends Activity {
     public static final String MIME_TEXT_PLAIN = "text/plain";
     private static String TAG = MainActivity.class.getSimpleName();
     protected NfcAdapter adapter;
-  //  protected PendingIntent pendingIntent;
-  //  IntentFilter writeTagFilters[];
+    protected PendingIntent pendingIntent;
+    IntentFilter writeTagFilters[];
     boolean writeMode;
     Tag mytag;
     Context ctx;
@@ -59,10 +59,10 @@ public class MainActivity extends Activity {
         mTextView = (TextView) findViewById(R.id.title3);
         // initialize NFC
         adapter = NfcAdapter.getDefaultAdapter(this);
-        //    pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-        //    IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-        //    tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
-        //    writeTagFilters = new IntentFilter[] { tagDetected};
+            pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+            IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+            tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
+            writeTagFilters = new IntentFilter[] { tagDetected};
 
         findViewById(R.id.reset_btn).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,19 +88,7 @@ public class MainActivity extends Activity {
             textView.setText("Hello NFC tag!");
             //    Toast.makeText(ctx, ctx.getString(R.string.hello_tag), Toast.LENGTH_LONG ).show();
             mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Parcelable[] messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-            if (messages == null) {
-                try {
-                    onReset(mytag);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (FormatException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                // Read tag
-                readTag(mytag);
-            }
+                readTag(mytag, intent);
 
             // Notifications for tag write status
             Toast.makeText(this, this.getString(R.string.ok_detection) + mytag.toString(), Toast.LENGTH_LONG).show();
@@ -134,8 +122,8 @@ public class MainActivity extends Activity {
 
     private void WriteModeOn() {
         writeMode = true;
-        setupForegroundDispatch(this, adapter);
-        //adapter.enableForegroundDispatch(this, pendingIntent, writeTagFilters, null);
+      //  setupForegroundDispatch(this, adapter);
+        adapter.enableForegroundDispatch(this, pendingIntent, writeTagFilters, null);
     }
 
     private void WriteModeOff() {
@@ -166,7 +154,17 @@ public class MainActivity extends Activity {
         adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
     }
 
-    private void readTag(Tag tag) {
+    private void readTag(Tag tag, Intent intent) {
+        Parcelable[] messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+            if(messages!=null){
+                try {
+                    onReset(mytag);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (FormatException e) {
+                    e.printStackTrace();
+                }
+            }
         NdefRecord[] records = Ndef.get(tag).getCachedNdefMessage().getRecords();
         for(NdefRecord ndefRecord : records) {
             if (ndefRecord.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(ndefRecord.getType(), NdefRecord.RTD_TEXT)) {
@@ -178,6 +176,7 @@ public class MainActivity extends Activity {
             }
         }
     }
+    // Read record no. n
     private NdefRecord readRecordN(int n) {
 
         Ndef ndef = Ndef.get(mytag);
@@ -185,7 +184,6 @@ public class MainActivity extends Activity {
             // NDEF is not supported by this Tag.
             return null;
         }
-
         NdefMessage ndefMessage = ndef.getCachedNdefMessage();
         NdefRecord[] records = ndefMessage.getRecords();
         return records[n];
@@ -194,11 +192,16 @@ public class MainActivity extends Activity {
     // Function for writing to tag
     private void write(Tag tag) throws IOException, FormatException {
         String phoneName = getLocalBluetoothName();
-        /*TODO: 2 conditions for write: 1 when headset paired for 1st time: NdefRecord[] records = { createRecord(headset_name),
-         createRecord(1), createRecord(phoneName); }
-         2 when headset_name found in paired device: NdefRecord[] records = { createRecord(headset_name),record_freq(),
-         createRecord(phoneName) };*/
-        NdefRecord[] records = { createRecord("blah"),record_freq(),createRecord(phoneName) };
+         /*TODO: 2 conditions for write: 1 when headset paired for 1st time:
+        if(!pairedDevices.contains(headset_name)) {
+        NdefRecord[] records = { createRecord(headset_name), createRecord("1"), createRecord(phoneName) } ;
+        }
+        2 when headset_name found in paired device:
+        else {
+        NdefRecord[] records = { createRecord(headset_name),record_freq(),createRecord(phoneName) };
+        } */
+
+        NdefRecord[] records = { createRecord("hmphh"),record_freq(),createRecord(phoneName) };
         NdefMessage  message = new NdefMessage(records);
         // Get an instance of Ndef for the tag.
         Ndef ndef = Ndef.get(tag);
@@ -259,18 +262,18 @@ public class MainActivity extends Activity {
         if (freq_block.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(freq_block.getType(), NdefRecord.RTD_TEXT)) {
             try {
                 frequency = toInteger(readRecordText(freq_block));
-                if(frequency == 0) {
+                if(frequency != 31) {  //max value that can be written
                     frequency += 1;
                 }
                 else {
-                    frequency += 1;
+                    frequency = 0;
                 }
                 freq = String.valueOf(frequency);
             } catch (UnsupportedEncodingException e) {
                 Log.e(TAG, "Unsupported Encoding", e);
             }
         }
-        String text = "used " + freq + " times";
+        String text = freq;
         byte[] textBytes  = text.getBytes();
         byte[] langBytes  = lang.getBytes("US-ASCII");
         int    langLength = langBytes.length;
@@ -333,7 +336,7 @@ public class MainActivity extends Activity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                int length = 20;
+                int length = 21;
                 String newString = view.getText().toString();
                 if (newString.length() > length)
                     newString = newString.substring(newString.length() - length);
